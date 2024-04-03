@@ -1,0 +1,15 @@
+
+\.target/
+\.idea/
+
+\pom.xml.versionsBackup
+
+*.iml
+target/
+
+\.settings
+\.project
+\.checkstyle
+\.classpath
+
+.DS_Store
