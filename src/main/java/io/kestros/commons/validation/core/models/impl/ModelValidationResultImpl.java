@@ -61,6 +61,15 @@ public class ModelValidationResultImpl implements ModelValidationResult {
 
   @Override
   public Map<ModelValidationMessageType, List<String>> getMessages() {
+    if(!messagesMap.containsKey(ModelValidationMessageType.ERROR)) {
+      messagesMap.put(ModelValidationMessageType.ERROR, new ArrayList<>());
+    }
+    if(!messagesMap.containsKey(ModelValidationMessageType.WARNING)) {
+      messagesMap.put(ModelValidationMessageType.WARNING, new ArrayList<>());
+    }
+    if(!messagesMap.containsKey(ModelValidationMessageType.INFO)) {
+      messagesMap.put(ModelValidationMessageType.INFO, new ArrayList<>());
+    }
     return messagesMap;
   }
 }
