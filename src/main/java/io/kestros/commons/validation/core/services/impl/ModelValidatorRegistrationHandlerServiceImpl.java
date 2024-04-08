@@ -42,6 +42,7 @@ public class ModelValidatorRegistrationHandlerServiceImpl
   @Activate
   public void activate(ComponentContext componentContext) {
     this.componentContext = componentContext;
+    this.registerAllValidatorsFromAllServices();
   }
 
   @Override
@@ -134,20 +135,21 @@ public class ModelValidatorRegistrationHandlerServiceImpl
           }
         }
 
-      }
+      } else {
 
-      for (ModelValidator newRegisteredModelValidator : validatorsToAdd) {
-        boolean isNewValidator = true;
-        for (ModelValidator existingRegisteredValidator :
-                existingRegisteredModelValidators) {
+        for (ModelValidator newRegisteredModelValidator : validatorsToAdd) {
+          boolean isNewValidator = true;
+          for (ModelValidator existingRegisteredValidator :
+                  existingRegisteredModelValidators) {
 
-          if (existingRegisteredValidator.getMessage().equals(
-                  newRegisteredModelValidator.getMessage())) {
-            isNewValidator = false;
+            if (existingRegisteredValidator.getMessage().equals(
+                    newRegisteredModelValidator.getMessage())) {
+              isNewValidator = false;
+            }
           }
-        }
-        if (isNewValidator) {
-          newModelValidators.add(newRegisteredModelValidator);
+          if (isNewValidator) {
+            newModelValidators.add(newRegisteredModelValidator);
+          }
         }
       }
       registeredModelValidatorMap.remove(type);

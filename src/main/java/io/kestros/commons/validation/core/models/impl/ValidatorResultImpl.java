@@ -22,12 +22,14 @@ public class ValidatorResultImpl implements ValidatorResult {
   private Map<ModelValidationMessageType, List<String>> messages;
 
   private String documentationResourceType;
+  private ModelValidationMessageType type;
 
   public <T extends BaseResource> ValidatorResultImpl(ModelValidator validator, T model) {
     this.messages = new HashMap<>();
     this.message = validator.getMessage();
     this.detailedMessage = validator.getDetailedMessage(model);
     this.validatorClassPath = validator.getClass().getName();
+    this.isValid = true;
     if (validator instanceof ModelValidatorBundle) {
       this.bundled = new ArrayList<>();
       ModelValidatorBundle bundle = (ModelValidatorBundle) validator;
@@ -53,6 +55,7 @@ public class ValidatorResultImpl implements ValidatorResult {
     } else {
       this.documentationResourceType = null;
     }
+    this.type = validator.getType();
   }
 
   @Override
@@ -83,6 +86,11 @@ public class ValidatorResultImpl implements ValidatorResult {
   @Override
   public String getValidatorClassPath() {
     return validatorClassPath;
+  }
+
+  @Override
+  public ModelValidationMessageType getType() {
+    return type;
   }
 
   @Override
