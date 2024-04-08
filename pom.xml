@@ -25,7 +25,7 @@ under the License.
   <parent>
     <groupId>io.kestros.commons</groupId>
     <artifactId>kestros-parent</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.1</version>
     <relativePath/>
   </parent>
 
@@ -53,7 +53,7 @@ under the License.
     <dependency>
       <groupId>io.kestros.commons</groupId>
       <artifactId>kestros-osgi-service-utils</artifactId>
-      <version>0.1.9-SNAPSHOT</version>
+      <version>0.1.9</version>
     </dependency>
 
     <dependency>
