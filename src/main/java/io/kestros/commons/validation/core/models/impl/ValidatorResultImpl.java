@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.kestros.commons.validation.core.models.impl;
 
 import io.kestros.commons.structuredslingmodels.BaseResource;
@@ -12,6 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementation of a processed model validator result.
+ */
 public class ValidatorResultImpl implements ValidatorResult {
 
   private boolean isValid;
@@ -24,6 +46,13 @@ public class ValidatorResultImpl implements ValidatorResult {
   private String documentationResourceType;
   private ModelValidationMessageType type;
 
+  /**
+   * Builds a processed model validator result for the given validator and model.
+   *
+   * @param validator Validator to process
+   * @param model Model to validate
+   * @param <T> Model type.
+   */
   public <T extends BaseResource> ValidatorResultImpl(ModelValidator validator, T model) {
     this.messages = new HashMap<>();
     this.message = validator.getMessage();
@@ -80,7 +109,7 @@ public class ValidatorResultImpl implements ValidatorResult {
 
   @Override
   public List<ValidatorResult> getBundled() {
-    return bundled;
+    return new ArrayList<>(bundled);
   }
 
   @Override
@@ -95,7 +124,7 @@ public class ValidatorResultImpl implements ValidatorResult {
 
   @Override
   public Map<ModelValidationMessageType, List<String>> getMessages() {
-    return messages;
+    return new HashMap<>(messages);
   }
 
 
