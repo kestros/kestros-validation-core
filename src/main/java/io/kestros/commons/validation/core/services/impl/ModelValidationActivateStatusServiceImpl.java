@@ -19,12 +19,14 @@
 
 package io.kestros.commons.validation.core.services.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import io.kestros.commons.validation.core.services.ModelValidationActivateStatusService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -34,6 +36,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Service for managing the activation status of ModelValidators.
  */
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_TOSTRING")
 @Component(immediate = true,
         service = ModelValidationActivateStatusService.class)
 public class ModelValidationActivateStatusServiceImpl implements
@@ -60,14 +63,17 @@ public class ModelValidationActivateStatusServiceImpl implements
     LOG.info("Deactivating ModelValidationActivateStatusService.");
   }
 
+  @Nonnull
   @Override
   public Map<Class, Map<String, Boolean>> getValidatorActivationStatusMap() {
     return new HashMap<>(validatorActivationStatusMap);
   }
 
 
+  @Nonnull
   @Override
-  public List<ModelValidator> getActiveValidators(List<ModelValidator> validators, Class type) {
+  public List<ModelValidator> getActiveValidators(@Nonnull final List<ModelValidator> validators,
+          @Nonnull final Class type) {
     List<ModelValidator> activeValidators = new ArrayList<>();
     for (ModelValidator validator : validators) {
       if (isModelValidatorActiveForClass(validator, type)) {
@@ -78,7 +84,8 @@ public class ModelValidationActivateStatusServiceImpl implements
   }
 
   @Override
-  public boolean isModelValidatorActiveForClass(ModelValidator validator, Class type) {
+  public boolean isModelValidatorActiveForClass(@Nonnull final ModelValidator validator,
+          @Nonnull final Class type) {
     Map<String, Boolean> typeMap = validatorActivationStatusMap.get(type);
     if (typeMap != null) {
       return typeMap.get(validator.getClass().getName());
@@ -87,15 +94,17 @@ public class ModelValidationActivateStatusServiceImpl implements
   }
 
   @Override
-  public void activateValidator(ModelValidator validator, Class type) {
+  public void activateValidator(@Nonnull final ModelValidator validator,
+          @Nonnull final Class type) {
     if (validatorActivationStatusMap.get(type) == null) {
       validatorActivationStatusMap.put(type, new HashMap<>());
     }
-    validatorActivationStatusMap.get(type).put(validator.getClass().getName(), true);
+    validatorActivationStatusMap.get(type).put(validator.getClass().getName(), Boolean.TRUE);
   }
 
   @Override
-  public void deactivateValidator(ModelValidator validator, Class type) {
-    validatorActivationStatusMap.get(type).put(validator.getClass().getName(), false);
+  public void deactivateValidator(@Nonnull final ModelValidator validator,
+          @Nonnull final Class type) {
+    validatorActivationStatusMap.get(type).put(validator.getClass().getName(), Boolean.FALSE);
   }
 }

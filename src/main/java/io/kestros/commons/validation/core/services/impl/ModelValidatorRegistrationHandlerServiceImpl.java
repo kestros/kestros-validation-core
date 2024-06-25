@@ -21,6 +21,7 @@ package io.kestros.commons.validation.core.services.impl;
 
 import static io.kestros.commons.osgiserviceutils.utils.OsgiServiceUtils.getAllOsgiServicesOfType;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.kestros.commons.osgiserviceutils.utils.OsgiServiceUtils;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import io.kestros.commons.validation.api.services.ModelValidatorRegistrationHandlerService;
@@ -30,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.apache.felix.hc.api.FormattingResultLog;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -43,6 +46,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Model Validator Registration Handler Service.
  */
+@SuppressFBWarnings({"IMC_IMMATURE_CLASS_NO_TOSTRING"})
 @Component(immediate = true,
         service = ModelValidatorRegistrationHandlerService.class,
         property = "service.ranking:Integer=100")
@@ -57,6 +61,7 @@ public class ModelValidatorRegistrationHandlerServiceImpl
   private ModelValidationActivateStatusService modelValidationActivateStatusService;
   private ComponentContext componentContext;
 
+  @Nonnull
   @Override
   public String getDisplayName() {
     return "Model Validator Registration Handler Service";
@@ -68,7 +73,7 @@ public class ModelValidatorRegistrationHandlerServiceImpl
    * @param componentContext ComponentContext.
    */
   @Activate
-  public void activate(ComponentContext componentContext) {
+  public void activate(@Nonnull ComponentContext componentContext) {
     LOG.info("Activating Model Validator Registration Handler Service.");
     this.componentContext = componentContext;
     this.registerAllValidatorsFromAllServices();
@@ -76,12 +81,12 @@ public class ModelValidatorRegistrationHandlerServiceImpl
 
 
   @Override
-  public void deactivate(ComponentContext componentContext) {
+  public void deactivate(@Nonnull ComponentContext componentContext) {
     LOG.info("Deactivating Model Validator Registration Handler Service.");
   }
 
   @Override
-  public void runAdditionalHealthChecks(FormattingResultLog log) {
+  public void runAdditionalHealthChecks(@Nonnull FormattingResultLog log) {
     log.debug("Running additional health checks for Model Validator Registration Handler Service.");
     List<ModelValidatorRegistrationService> registrationServiceList
             = OsgiServiceUtils.getAllOsgiServicesOfType(componentContext,
@@ -91,7 +96,8 @@ public class ModelValidatorRegistrationHandlerServiceImpl
             registrationServiceList) {
       if (modelValidatorRegistrationService.getModelValidatorRegistrationHandlerService() == null) {
         log.warn(String.format("No referenced ModelValidatorRegistrationService for %s",
-                modelValidatorRegistrationService.getClass().getName().replaceAll("[\r\n]", "")));
+                modelValidatorRegistrationService.getClass().getName()
+                        .replaceAll("[\r\n]", "")));
       }
     }
 
@@ -100,6 +106,7 @@ public class ModelValidatorRegistrationHandlerServiceImpl
     }
   }
 
+  @Nonnull
   @Override
   public Map<Class, List<ModelValidator>> getRegisteredModelValidatorMap() {
     return new HashMap<>(this.registeredModelValidatorMap);
@@ -117,24 +124,26 @@ public class ModelValidatorRegistrationHandlerServiceImpl
 
   @Override
   public void registerAllValidatorsFromService(
-          ModelValidatorRegistrationService registrationService) {
+          @Nonnull ModelValidatorRegistrationService registrationService) {
     this.registerValidators(registrationService.getModelValidators(),
             registrationService.getModelType());
   }
 
   @Override
   public void unregisterAllValidatorsFromService(
-          ModelValidatorRegistrationService registrationService) {
+          @Nonnull final ModelValidatorRegistrationService registrationService) {
     this.removeValidators(registrationService.getModelValidators(),
             registrationService.getModelType());
   }
 
   @Override
-  public void registerValidators(List<ModelValidator> modelValidators, Class type) {
+  public void registerValidators(@Nonnull List<ModelValidator> modelValidators,
+          @Nonnull Class type) {
     if (!registeredModelValidatorMap.containsKey(type)) {
       // If no validators are registered for this type, add all validators.
       registeredModelValidatorMap.put(type,
-              getRegisteredModelValidatorsFromModelValidators(modelValidators, type));
+              getRegisteredModelValidatorsFromModelValidators(
+                      modelValidators, type));
 
       // Activate all validators by default.
       for (ModelValidator modelValidator : modelValidators) {
@@ -167,7 +176,7 @@ public class ModelValidatorRegistrationHandlerServiceImpl
   }
 
   @Override
-  public void removeValidators(List<ModelValidator> modelValidators, Class type) {
+  public void removeValidators(@Nonnull List<ModelValidator> modelValidators, @Nonnull Class type) {
     // todo may not be needed.
     //    if (registeredModelValidatorMap.containsKey(type)) {
     //      List<RegisteredModelValidator> newRegisteredModelValidatorList = new ArrayList<>();
@@ -182,17 +191,17 @@ public class ModelValidatorRegistrationHandlerServiceImpl
    *
    * @return ModelValidationActivateStatusService.
    */
+  @Nullable
   ModelValidationActivateStatusService getModelValidationActivateStatusService() {
     return this.modelValidationActivateStatusService;
   }
 
+  @Nonnull
   List<ModelValidator> getRegisteredModelValidatorsFromModelValidators(
-          List<ModelValidator> validators, Class type) {
+          @Nullable List<ModelValidator> validators, @Nullable Class type) {
     List<ModelValidator> registeredModelValidatorList = new ArrayList<>();
     if (validators != null && type != null) {
-      for (ModelValidator modelValidator : validators) {
-        registeredModelValidatorList.add(modelValidator);
-      }
+      registeredModelValidatorList.addAll(validators);
     }
     return registeredModelValidatorList;
   }

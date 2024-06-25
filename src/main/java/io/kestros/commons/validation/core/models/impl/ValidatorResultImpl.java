@@ -19,6 +19,7 @@
 
 package io.kestros.commons.validation.core.models.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.kestros.commons.structuredslingmodels.BaseResource;
 import io.kestros.commons.validation.api.ModelValidationMessageType;
 import io.kestros.commons.validation.api.models.DocumentedModelValidator;
@@ -30,10 +31,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
 /**
  * Implementation of a processed model validator result.
  */
+@SuppressFBWarnings({"PSC_PRESIZE_COLLECTIONS","IMC_IMMATURE_CLASS_NO_TOSTRING"})
 public class ValidatorResultImpl implements ValidatorResult {
 
   private boolean isValid;
@@ -53,7 +56,9 @@ public class ValidatorResultImpl implements ValidatorResult {
    * @param model Model to validate
    * @param <T> Model type.
    */
-  public <T extends BaseResource> ValidatorResultImpl(ModelValidator validator, T model) {
+  @SuppressFBWarnings({"PSC_PRESIZE_COLLECTIONS","UEC_USE_ENUM_COLLECTIONS"})
+  public <T extends BaseResource> ValidatorResultImpl(@Nonnull final ModelValidator validator,
+          @Nonnull final T model) {
     this.messages = new HashMap<>();
     this.message = validator.getMessage();
     this.detailedMessage = validator.getDetailedMessage(model);
@@ -92,37 +97,45 @@ public class ValidatorResultImpl implements ValidatorResult {
     return isValid;
   }
 
+  @Nonnull
   @Override
   public String getMessage() {
     return message;
   }
 
+  @Nonnull
   @Override
   public String getDetailedMessage() {
     return detailedMessage;
   }
 
+  @Nonnull
   @Override
   public String getDocumentationResourceType() {
     return documentationResourceType;
   }
 
+  @Nonnull
   @Override
   public List<ValidatorResult> getBundled() {
     return new ArrayList<>(bundled);
   }
 
+  @Nonnull
   @Override
   public String getValidatorClassPath() {
     return validatorClassPath;
   }
 
+  @Nonnull
   @Override
   public ModelValidationMessageType getType() {
     return type;
   }
 
+  @Nonnull
   @Override
+
   public Map<ModelValidationMessageType, List<String>> getMessages() {
     return new HashMap<>(messages);
   }

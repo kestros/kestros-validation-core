@@ -19,8 +19,9 @@
 
 package io.kestros.commons.validation.core.services.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.kestros.commons.validation.api.services.ModelValidatorRegistrationHandlerService;
-import java.util.HashMap;
+import javax.annotation.Nonnull;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -39,8 +40,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Tracks bundles and registers ModelValidators as they are added.
-
  */
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_TOSTRING")
 @Component(immediate = true,
         service = ValidationBundleTrackerService.class)
 public class ValidationBundleTrackerService implements
@@ -52,19 +53,17 @@ public class ValidationBundleTrackerService implements
           policyOption = ReferencePolicyOption.GREEDY)
   private ModelValidatorRegistrationHandlerService modelValidatorRegistrationHandlerService;
 
-  private ComponentContext componentContext;
   private BundleTracker bundleTracker;
-  private BundleContext bundleContext;
 
   /**
    * Activates the ValidationBundleTrackerService.
+   *
    * @param ctx ComponentContext.
    */
   @Activate
-  public void activate(final ComponentContext ctx) {
+  public void activate(@Nonnull final ComponentContext ctx) {
     LOG.info("Activating ValidationBundleTrackerService.");
-    this.componentContext = ctx;
-    this.bundleContext = ctx.getBundleContext();
+    BundleContext bundleContext = ctx.getBundleContext();
     // TODO is this the most efficient way to track bundles?
     this.bundleTracker = new BundleTracker<>(bundleContext, Bundle.ACTIVE, this);
     this.bundleTracker.open();
@@ -79,20 +78,22 @@ public class ValidationBundleTrackerService implements
     this.bundleTracker.close();
   }
 
+  @Nonnull
   @Override
-  public ServiceRegistration[] addingBundle(Bundle bundle, BundleEvent bundleEvent) {
+  public ServiceRegistration[] addingBundle(@Nonnull Bundle bundle,
+          @Nonnull BundleEvent bundleEvent) {
     modelValidatorRegistrationHandlerService.registerAllValidatorsFromAllServices();
     return new ServiceRegistration[0];
   }
 
   @Override
-  public void modifiedBundle(Bundle bundle, BundleEvent bundleEvent,
+  public void modifiedBundle(@Nonnull Bundle bundle, @Nonnull BundleEvent bundleEvent,
           ServiceRegistration[] serviceRegistrations) {
     modelValidatorRegistrationHandlerService.registerAllValidatorsFromAllServices();
   }
 
   @Override
-  public void removedBundle(Bundle bundle, BundleEvent bundleEvent,
+  public void removedBundle(@Nonnull Bundle bundle, @Nonnull BundleEvent bundleEvent,
           ServiceRegistration[] serviceRegistrations) {
     modelValidatorRegistrationHandlerService.registerAllValidatorsFromAllServices();
 

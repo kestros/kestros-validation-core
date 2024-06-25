@@ -19,11 +19,13 @@
 
 package io.kestros.commons.validation.core.services.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.kestros.commons.structuredslingmodels.BaseResource;
 import io.kestros.commons.validation.api.models.ModelValidationResult;
 import io.kestros.commons.validation.api.services.ModelValidationService;
 import io.kestros.commons.validation.core.models.impl.ModelValidationResultImpl;
 import io.kestros.commons.validation.core.services.ModelValidatorProviderService;
+import javax.annotation.Nonnull;
 import org.apache.felix.hc.api.FormattingResultLog;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Component;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Model Validation Service.
  */
+@SuppressFBWarnings({"IMC_IMMATURE_CLASS_NO_TOSTRING"})
 @Component(immediate = true,
         service = ModelValidationService.class)
 public class ModelValidationServiceImpl implements ModelValidationService {
@@ -50,31 +53,33 @@ public class ModelValidationServiceImpl implements ModelValidationService {
   //          policyOption = ReferencePolicyOption.GREEDY)
   //  private ModelValidationCacheService validationCacheService;
 
+  @Nonnull
   @Override
   public String getDisplayName() {
     return "Model Validation Service";
   }
 
   @Override
-  public void activate(ComponentContext componentContext) {
+  public void activate(@Nonnull final ComponentContext componentContext) {
     LOG.info("Activating Model Validation Service.");
   }
 
   @Override
-  public void deactivate(ComponentContext componentContext) {
+  public void deactivate(@Nonnull final ComponentContext componentContext) {
     LOG.info("Deactivating Model Validation Service.");
   }
 
   @Override
-  public void runAdditionalHealthChecks(FormattingResultLog log) {
+  public void runAdditionalHealthChecks(@Nonnull final FormattingResultLog log) {
     log.debug("Running health checks for Model Validation Service.");
     if (validatorProviderService == null) {
       log.critical("ModelValidatorProviderService is not available.");
     }
   }
 
+  @Nonnull
   @Override
-  public <T extends BaseResource> ModelValidationResult validate(T model) {
+  public <T extends BaseResource> ModelValidationResult validate(@Nonnull final T model) {
     return new ModelValidationResultImpl(model,
             validatorProviderService.getActiveValidators(model.getClass()));
   }
