@@ -22,6 +22,8 @@ package io.kestros.commons.validation.core.services;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Service for managing the activation status of ModelValidators.
@@ -33,6 +35,7 @@ public interface ModelValidationActivateStatusService {
    *
    * @return Map of all ModelValidators and their activation status for each class.
    */
+  @Nonnull
   Map<Class, Map<String, Boolean>> getValidatorActivationStatusMap();
 
 
@@ -44,7 +47,9 @@ public interface ModelValidationActivateStatusService {
    *
    * @return List of all active ModelValidators for a given class.
    */
-  List<ModelValidator> getActiveValidators(List<ModelValidator> validators, Class type);
+  @Nonnull
+  List<ModelValidator> getActiveValidators(@Nullable final List<ModelValidator> validators,
+          @Nullable final Class type);
 
 
   /**
@@ -55,7 +60,8 @@ public interface ModelValidationActivateStatusService {
    *
    * @return True if the ModelValidator is active for the given class.
    */
-  boolean isModelValidatorActiveForClass(ModelValidator validator, Class type);
+  boolean isModelValidatorActiveForClass(@Nullable final ModelValidator validator,
+          @Nullable final Class type);
 
   /**
    * Activates a ModelValidator for a given class.
@@ -63,7 +69,7 @@ public interface ModelValidationActivateStatusService {
    * @param validator ModelValidator to activate.
    * @param type Class to activate
    */
-  void activateValidator(ModelValidator validator, Class type);
+  void activateValidator(@Nullable final ModelValidator validator, @Nullable final Class type);
 
   /**
    * Deactivates a ModelValidator for a given class.
@@ -71,5 +77,5 @@ public interface ModelValidationActivateStatusService {
    * @param validator ModelValidator to deactivate.
    * @param type Class to deactivate.
    */
-  void deactivateValidator(ModelValidator validator, Class type);
+  void deactivateValidator(@Nullable final ModelValidator validator, @Nullable final Class type);
 }

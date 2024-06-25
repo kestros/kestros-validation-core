@@ -19,6 +19,7 @@
 
 package io.kestros.commons.validation.core.models.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.kestros.commons.structuredslingmodels.BaseResource;
 import io.kestros.commons.structuredslingmodels.BaseSlingModel;
 import io.kestros.commons.validation.api.ModelValidationMessageType;
@@ -33,7 +34,8 @@ import javax.annotation.Nonnull;
 
 /**
  * Implementation of a processed model validation result.
- * */
+ */
+@SuppressFBWarnings({"IMC_IMMATURE_CLASS_NO_TOSTRING"})
 public class ModelValidationResultImpl implements ModelValidationResult {
 
   private final List<ValidatorResult> results;
@@ -49,23 +51,26 @@ public class ModelValidationResultImpl implements ModelValidationResult {
    * @param validators List of validators to run against the model.
    * @param <T> Model type.
    */
-  public <T extends BaseResource> ModelValidationResultImpl(T model,
-          List<ModelValidator> validators) {
+  @SuppressFBWarnings("PSC_PRESIZE_COLLECTIONS")
+  @Nonnull
+  public <T extends BaseResource> ModelValidationResultImpl(@Nonnull final T model,
+          @Nonnull final List<ModelValidator> validators) {
     this.results = new ArrayList<>();
     messagesMap = new HashMap<>();
     this.model = model;
     this.validators = new ArrayList<>(validators);
-    this.isValid = true;
+    this.isValid = Boolean.TRUE;
     for (ModelValidator validator : validators) {
       ValidatorResult validatorResult = new ValidatorResultImpl(validator, model);
       if (!validatorResult.isValid()) {
-        this.isValid = false;
+        this.isValid = Boolean.FALSE;
       }
       results.add(validatorResult);
       messagesMap.putAll(validatorResult.getMessages());
     }
   }
 
+  @Nonnull
   @Override
   public List<ValidatorResult> getResults() {
     return new ArrayList<>(results);
@@ -78,6 +83,7 @@ public class ModelValidationResultImpl implements ModelValidationResult {
   }
 
 
+  @Nonnull
   @Override
   public List<ModelValidator> getValidators() {
     return new ArrayList<>(validators);
@@ -88,6 +94,8 @@ public class ModelValidationResultImpl implements ModelValidationResult {
     return isValid;
   }
 
+  @SuppressFBWarnings("UEC_USE_ENUM_COLLECTIONS")
+  @Nonnull
   @Override
   public Map<ModelValidationMessageType, List<String>> getMessages() {
     if (!messagesMap.containsKey(ModelValidationMessageType.ERROR)) {

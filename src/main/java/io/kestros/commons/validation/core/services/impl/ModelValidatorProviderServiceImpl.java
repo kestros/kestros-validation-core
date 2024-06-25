@@ -19,12 +19,14 @@
 
 package io.kestros.commons.validation.core.services.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import io.kestros.commons.validation.api.services.ModelValidatorRegistrationHandlerService;
 import io.kestros.commons.validation.core.services.ModelValidationActivateStatusService;
 import io.kestros.commons.validation.core.services.ModelValidatorProviderService;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.apache.felix.hc.api.FormattingResultLog;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Component;
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Model Validator Provider Service.
  */
+@SuppressFBWarnings({"IMC_IMMATURE_CLASS_NO_TOSTRING"})
 @Component(immediate = true,
         service = ModelValidatorProviderService.class,
         property = "service.ranking:Integer=100")
@@ -53,28 +56,29 @@ public class ModelValidatorProviderServiceImpl implements ModelValidatorProvider
           policyOption = ReferencePolicyOption.GREEDY)
   private ModelValidationActivateStatusService modelValidationActivateStatusService;
 
+  @Nonnull
   @Override
   public String getDisplayName() {
     return "Model Validator Provider Service";
   }
 
   @Override
-  public void activate(ComponentContext componentContext) {
+  public void activate(@Nonnull final ComponentContext componentContext) {
 
   }
 
   @Override
-  public void deactivate(ComponentContext componentContext) {
+  public void deactivate(@Nonnull final ComponentContext componentContext) {
 
   }
 
   @Override
-  public void runAdditionalHealthChecks(FormattingResultLog log) {
+  public void runAdditionalHealthChecks(@Nonnull FormattingResultLog log) {
 
   }
 
   @Override
-  public void activateValidator(ModelValidator validator, Class type) {
+  public void activateValidator(@Nonnull ModelValidator validator,@Nonnull Class type) {
     if (registrationHandlerService != null) {
       List<ModelValidator> registeredModelValidators
               = registrationHandlerService.getRegisteredModelValidatorMap().get(type);
@@ -92,7 +96,7 @@ public class ModelValidatorProviderServiceImpl implements ModelValidatorProvider
   }
 
   @Override
-  public void deactivateValidator(ModelValidator validator, Class type) {
+  public void deactivateValidator(@Nonnull ModelValidator validator,@Nonnull Class type) {
     if (registrationHandlerService != null) {
       List<ModelValidator> registeredModelValidators
               = registrationHandlerService.getRegisteredModelValidatorMap().get(type);
@@ -109,13 +113,15 @@ public class ModelValidatorProviderServiceImpl implements ModelValidatorProvider
     }
   }
 
+  @Nonnull
   @Override
-  public List<ModelValidator> getAllValidators(Class type) {
+  public List<ModelValidator> getAllValidators(@Nonnull Class type) {
     return registrationHandlerService.getRegisteredModelValidatorMap().get(type);
   }
 
+  @Nonnull
   @Override
-  public List<ModelValidator> getActiveValidators(Class type) {
+  public List<ModelValidator> getActiveValidators(@Nonnull Class type) {
     List<ModelValidator> activateValidators = new ArrayList<>();
     if (registrationHandlerService != null) {
       if (registrationHandlerService.getRegisteredModelValidatorMap().containsKey(type)) {
@@ -135,8 +141,9 @@ public class ModelValidatorProviderServiceImpl implements ModelValidatorProvider
     return activateValidators;
   }
 
+  @Nonnull
   @Override
-  public List<ModelValidator> getInactiveValidators(Class type) {
+  public List<ModelValidator> getInactiveValidators(@Nonnull Class type) {
     List<ModelValidator> inactivateValidators = new ArrayList<>();
     if (registrationHandlerService != null) {
       if (registrationHandlerService.getRegisteredModelValidatorMap().containsKey(type)) {

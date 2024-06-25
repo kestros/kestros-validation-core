@@ -22,6 +22,7 @@ package io.kestros.commons.validation.core.services;
 import io.kestros.commons.osgiserviceutils.services.ManagedService;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  * Service for retrieving and managing ModelValidators.
@@ -34,7 +35,7 @@ public interface ModelValidatorProviderService extends ManagedService {
    * @param validator ModelValidator to activate.
    * @param type Class to activate.
    */
-  void activateValidator(ModelValidator validator, Class type);
+  void activateValidator(@Nonnull final ModelValidator validator, @Nonnull final Class type);
 
   /**
    * Deactivates a ModelValidator for a given class.
@@ -42,7 +43,7 @@ public interface ModelValidatorProviderService extends ManagedService {
    * @param validator ModelValidator to deactivate.
    * @param type Class to deactivate.
    */
-  void deactivateValidator(ModelValidator validator, Class type);
+  void deactivateValidator(@Nonnull final ModelValidator validator, @Nonnull final Class type);
 
   /**
    * Gets all registered ModelValidators for a given class.
@@ -51,7 +52,8 @@ public interface ModelValidatorProviderService extends ManagedService {
    *
    * @return List of all registered ModelValidators for a given class.
    */
-  List<ModelValidator> getAllValidators(Class type);
+  @Nonnull
+  List<ModelValidator> getAllValidators(@Nonnull final Class type);
 
   /**
    * Gets all active ModelValidators for a given class.
@@ -60,7 +62,8 @@ public interface ModelValidatorProviderService extends ManagedService {
    *
    * @return List of all active ModelValidators for a given class.
    */
-  List<ModelValidator> getActiveValidators(Class type);
+  @Nonnull
+  List<ModelValidator> getActiveValidators(@Nonnull final Class type);
 
   /**
    * Gets all inactive ModelValidators for a given class.
@@ -69,5 +72,6 @@ public interface ModelValidatorProviderService extends ManagedService {
    *
    * @return List of all inactive ModelValidators for a given class.
    */
-  List<ModelValidator> getInactiveValidators(Class type);
+  @Nonnull
+  List<ModelValidator> getInactiveValidators(@Nonnull final Class type);
 }
