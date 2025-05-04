@@ -65,6 +65,8 @@ public class ValidatorResultImpl implements ValidatorResult {
     this.validatorClassPath = validator.getClass().getName();
     this.isValid = true;
     if (validator instanceof ModelValidatorBundle) {
+      boolean hasValidValidator = false;
+      boolean hasInvalidValidator = false;
       this.bundled = new ArrayList<>();
       ModelValidatorBundle bundle = (ModelValidatorBundle) validator;
       for (Object childObject : bundle.getValidators()) {
@@ -72,9 +74,16 @@ public class ValidatorResultImpl implements ValidatorResult {
         ValidatorResult result = new ValidatorResultImpl(childValidator, model);
         bundled.add(result);
         if (!result.isValid()) {
-          this.isValid = false;
+          hasInvalidValidator = true;
           this.messages.putAll(result.getMessages());
+        } else {
+          hasValidValidator = true;
         }
+      }
+      if (bundle.isAllMustBeTrue()) {
+        this.isValid = hasValidValidator && !hasInvalidValidator;
+      } else {
+        this.isValid = hasValidValidator || !hasInvalidValidator;
       }
 
     } else {
