@@ -36,8 +36,7 @@ under the License.
   <packaging>bundle</packaging>
 
   <name>Kestros Commons - Validation Core</name>
-  <description>
-  </description>
+  <description>Implementation of Kestros CMS Validation models and services.</description>
 
   <properties>
     <rootPackage>io.kestros.commons.validation.core</rootPackage>
