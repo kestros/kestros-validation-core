@@ -127,6 +127,9 @@ public class ValidatorResultImpl implements ValidatorResult {
   @Nonnull
   @Override
   public List<ValidatorResult> getBundled() {
+    if( bundled == null) {
+      return Collections.emptyList();
+    }
     return new ArrayList<>(bundled);
   }
 
