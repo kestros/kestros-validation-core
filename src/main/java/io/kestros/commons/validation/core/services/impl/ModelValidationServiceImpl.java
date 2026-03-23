@@ -25,6 +25,7 @@ import io.kestros.commons.validation.api.models.ModelValidationResult;
 import io.kestros.commons.validation.api.services.ModelValidationService;
 import io.kestros.commons.validation.core.models.impl.ModelValidationResultImpl;
 import io.kestros.commons.validation.core.services.ModelValidatorProviderService;
+import java.util.Collections;
 import javax.annotation.Nonnull;
 import org.apache.felix.hc.api.FormattingResultLog;
 import org.osgi.service.component.ComponentContext;
@@ -80,6 +81,10 @@ public class ModelValidationServiceImpl implements ModelValidationService {
   @Nonnull
   @Override
   public <T extends BaseResource> ModelValidationResult validate(@Nonnull final T model) {
+    if (validatorProviderService == null) {
+      LOG.warn("ModelValidatorProviderService is not available. Returning empty validation result.");
+      return new ModelValidationResultImpl(model, Collections.emptyList());
+    }
     return new ModelValidationResultImpl(model,
             validatorProviderService.getActiveValidators(model.getClass()));
   }
