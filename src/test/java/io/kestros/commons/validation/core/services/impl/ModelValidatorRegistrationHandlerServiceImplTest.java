@@ -39,7 +39,6 @@ import org.apache.felix.hc.api.FormattingResultLog;
 import org.apache.felix.hc.api.Result;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -176,13 +175,15 @@ public class ModelValidatorRegistrationHandlerServiceImplTest {
 
 
   @Test
-  @Ignore
   public void testUnregisterValidators() {
+    context.registerService(ModelValidatorRegistrationService.class, registrationService1);
+    context.registerService(ModelValidatorRegistrationService.class, registrationService2);
+
     assertEquals(0, registrationHandlerService.getRegisteredModelValidatorMap().size());
     context.registerInjectActivateService(registrationHandlerService);
     assertEquals(2, registrationHandlerService.getRegisteredModelValidatorMap().size());
     registrationHandlerService.unregisterAllValidatorsFromService(registrationService1);
-    assertEquals(0, registrationHandlerService.getRegisteredModelValidatorMap().size());
+    assertEquals(1, registrationHandlerService.getRegisteredModelValidatorMap().size());
   }
 
   @Test
