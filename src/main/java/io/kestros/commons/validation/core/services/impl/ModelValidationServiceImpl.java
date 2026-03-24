@@ -80,6 +80,10 @@ public class ModelValidationServiceImpl implements ModelValidationService {
   @Nonnull
   @Override
   public <T extends BaseResource> ModelValidationResult validate(@Nonnull final T model) {
+    if (validatorProviderService == null) {
+      LOG.warn("ModelValidatorProviderService is null, returning empty validation result.");
+      return new ModelValidationResultImpl(model, new java.util.ArrayList<>());
+    }
     return new ModelValidationResultImpl(model,
             validatorProviderService.getActiveValidators(model.getClass()));
   }
