@@ -12,12 +12,8 @@ When a model is validated, this module looks up all registered validators for th
 
 **Maven coordinates:**
 
-```xml
-<dependency>
-  <groupId>io.kestros.commons</groupId>
-  <artifactId>kestros-validation-core</artifactId>
-  <version>0.2.2</version>
-</dependency>
+```
+io.kestros.commons:kestros-validation-core
 ```
 
 **Build:**
@@ -29,11 +25,7 @@ mvn clean package
 **Deploy to a Sling instance:**
 
 ```bash
-curl -u admin:admin \
-  -F "action=install" \
-  -F "bundlestart=true" \
-  -F "bundlefile=@target/kestros-validation-core-0.2.2.jar" \
-  "http://localhost:8080/system/console/bundles"
+mvn clean install -P installBundle -Dsling.host=localhost -Dsling.port=8080
 ```
 
 ## Configuration
@@ -143,9 +135,9 @@ Model adapted → validate(model) called
 
 | Dependency | Maven Coordinates |
 |------------|-------------------|
-| kestros-validation-api | `io.kestros.commons:kestros-validation-api:[0.2.2,0.2.99]` |
-| kestros-structured-sling-models | `io.kestros.commons:kestros-structured-sling-models:[0.2.5,0.2.99]` |
-| kestros-osgi-service-utils | `io.kestros.commons:kestros-osgi-service-utils:[0.1.10,0.1.99]` |
+| kestros-validation-api | `io.kestros.commons:kestros-validation-api` |
+| kestros-structured-sling-models | `io.kestros.commons:kestros-structured-sling-models` |
+| kestros-osgi-service-utils | `io.kestros.commons:kestros-osgi-service-utils` |
 
 ### Downstream
 
@@ -155,11 +147,3 @@ Modules that need runtime model validation depend on this bundle:
 - `kestros-component-types-core`
 - `kestros-content-objects` (via validation services)
 - Any module that calls `ModelValidationService.validate()`
-
-## Contribution Notes
-
-- **Branch from:** `develop`
-- **PR target:** `develop`
-- **Branch naming:** `{type}/TASK-NNN-short-description` (e.g. `fix/TASK-085-validation-null-model`)
-- **Commit format:** `[kestros-validation-core]: <action>, <brief result>`
-- **Build verification:** Run `mvn clean package` before submitting; all tests must pass
