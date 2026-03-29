@@ -177,13 +177,24 @@ public class ModelValidatorRegistrationHandlerServiceImpl
 
   @Override
   public void removeValidators(@Nonnull List<ModelValidator> modelValidators, @Nonnull Class type) {
-    // todo may not be needed.
-    //    if (registeredModelValidatorMap.containsKey(type)) {
-    //      List<RegisteredModelValidator> newRegisteredModelValidatorList = new ArrayList<>();
-    //
-    //      registeredModelValidatorMap.remove(type);
-    //      registeredModelValidatorMap.put(type, newRegisteredModelValidatorList);
-    //    }
+    if (!registeredModelValidatorMap.containsKey(type)) {
+      return;
+    }
+    List<ModelValidator> registeredValidators = registeredModelValidatorMap.get(type);
+    for (ModelValidator validatorToRemove : modelValidators) {
+      if (validatorToRemove == null || validatorToRemove.getMessage() == null) {
+        continue;
+      }
+      registeredValidators.removeIf(existing ->
+              existing.getMessage() != null
+                      && existing.getMessage().equals(validatorToRemove.getMessage()));
+      if (modelValidationActivateStatusService != null) {
+        modelValidationActivateStatusService.deactivateValidator(validatorToRemove, type);
+      }
+    }
+    if (registeredValidators.isEmpty()) {
+      registeredModelValidatorMap.remove(type);
+    }
   }
 
   /**
