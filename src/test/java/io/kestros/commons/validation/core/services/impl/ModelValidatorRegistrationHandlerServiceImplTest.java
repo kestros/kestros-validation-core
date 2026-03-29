@@ -21,6 +21,7 @@ package io.kestros.commons.validation.core.services.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -194,9 +195,9 @@ public class ModelValidatorRegistrationHandlerServiceImplTest {
                                       .size());
     registrationHandlerService.removeValidators(registrationService1.getModelValidators(),
             BaseResource.class);
-    assertEquals(0,
-            registrationHandlerService.getRegisteredModelValidatorMap().get(BaseResource.class)
-                                      .size());
+    // All validators removed for BaseResource, so the key is cleaned up
+    assertNull(
+            registrationHandlerService.getRegisteredModelValidatorMap().get(BaseResource.class));
   }
 
   @Test
@@ -241,9 +242,9 @@ public class ModelValidatorRegistrationHandlerServiceImplTest {
             new ArrayList<>(validators));
     // Should not throw NullPointerException when activateStatusService is null
     handlerWithoutActivateService.removeValidators(validators, BaseResource.class);
-    assertEquals(0,
-            handlerWithoutActivateService.registeredModelValidatorMap.get(BaseResource.class)
-                                         .size());
+    // All validators removed, key cleaned up
+    assertNull(
+            handlerWithoutActivateService.registeredModelValidatorMap.get(BaseResource.class));
   }
 
   @Test
