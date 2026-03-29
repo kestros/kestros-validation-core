@@ -39,7 +39,6 @@ import org.apache.felix.hc.api.FormattingResultLog;
 import org.apache.felix.hc.api.Result;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -176,17 +175,75 @@ public class ModelValidatorRegistrationHandlerServiceImplTest {
 
 
   @Test
-  @Ignore
   public void testUnregisterValidators() {
-    assertEquals(0, registrationHandlerService.getRegisteredModelValidatorMap().size());
+    context.registerService(ModelValidatorRegistrationService.class, registrationService1);
+    context.registerService(ModelValidatorRegistrationService.class, registrationService2);
     context.registerInjectActivateService(registrationHandlerService);
     assertEquals(2, registrationHandlerService.getRegisteredModelValidatorMap().size());
     registrationHandlerService.unregisterAllValidatorsFromService(registrationService1);
-    assertEquals(0, registrationHandlerService.getRegisteredModelValidatorMap().size());
+    assertEquals(1, registrationHandlerService.getRegisteredModelValidatorMap().size());
   }
 
   @Test
-  public void testRemoveValidators() {
+  public void testRemoveValidatorsRemovesMatchingValidators() {
+    context.registerService(ModelValidatorRegistrationService.class, registrationService1);
+    context.registerService(ModelValidatorRegistrationService.class, registrationService2);
+    context.registerInjectActivateService(registrationHandlerService);
+    assertEquals(2,
+            registrationHandlerService.getRegisteredModelValidatorMap().get(BaseResource.class)
+                                      .size());
+    registrationHandlerService.removeValidators(registrationService1.getModelValidators(),
+            BaseResource.class);
+    assertEquals(0,
+            registrationHandlerService.getRegisteredModelValidatorMap().get(BaseResource.class)
+                                      .size());
+  }
+
+  @Test
+  public void testRemoveValidatorsDeactivatesValidators() {
+    context.registerService(ModelValidatorRegistrationService.class, registrationService1);
+    context.registerService(ModelValidatorRegistrationService.class, registrationService2);
+    context.registerInjectActivateService(registrationHandlerService);
+
+    registrationHandlerService.removeValidators(registrationService1.getModelValidators(),
+            BaseResource.class);
+    verify(activateStatusService, times(2)).deactivateValidator(any(), any());
+  }
+
+  @Test
+  public void testRemoveValidatorsRemovesEmptyTypeKey() {
+    context.registerService(ModelValidatorRegistrationService.class, registrationService1);
+    context.registerService(ModelValidatorRegistrationService.class, registrationService2);
+    context.registerInjectActivateService(registrationHandlerService);
+    assertEquals(2, registrationHandlerService.getRegisteredModelValidatorMap().size());
+
+    registrationHandlerService.removeValidators(registrationService1.getModelValidators(),
+            BaseResource.class);
+    assertEquals(1, registrationHandlerService.getRegisteredModelValidatorMap().size());
+  }
+
+  @Test
+  public void testRemoveValidatorsWhenTypeNotRegistered() {
+    context.registerService(ModelValidatorRegistrationService.class, registrationService1);
+    context.registerInjectActivateService(registrationHandlerService);
+    // Should not throw when removing validators for a type that is not registered
+    registrationHandlerService.removeValidators(registrationService2.getModelValidators(),
+            BasePage.class);
+    assertEquals(1, registrationHandlerService.getRegisteredModelValidatorMap().size());
+  }
+
+  @Test
+  public void testRemoveValidatorsWithNullSafetyOnActivateStatusService() {
+    ModelValidatorRegistrationHandlerServiceImpl handlerWithoutActivateService
+            = new ModelValidatorRegistrationHandlerServiceImpl();
+    List<ModelValidator> validators = registrationService1.getModelValidators();
+    handlerWithoutActivateService.registeredModelValidatorMap.put(BaseResource.class,
+            new ArrayList<>(validators));
+    // Should not throw NullPointerException when activateStatusService is null
+    handlerWithoutActivateService.removeValidators(validators, BaseResource.class);
+    assertEquals(0,
+            handlerWithoutActivateService.registeredModelValidatorMap.get(BaseResource.class)
+                                         .size());
   }
 
   @Test
