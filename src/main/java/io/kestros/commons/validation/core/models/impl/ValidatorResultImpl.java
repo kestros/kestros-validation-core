@@ -69,6 +69,7 @@ public class ValidatorResultImpl implements ValidatorResult {
       boolean hasInvalidValidator = false;
       this.bundled = new ArrayList<>();
       ModelValidatorBundle bundle = (ModelValidatorBundle) validator;
+      bundle.registerValidators();
       for (Object childObject : bundle.getValidators()) {
         ModelValidator childValidator = (ModelValidator) childObject;
         ValidatorResult result = new ValidatorResultImpl(childValidator, model);
@@ -151,6 +152,4 @@ public class ValidatorResultImpl implements ValidatorResult {
   public Map<ModelValidationMessageType, List<String>> getMessages() {
     return new HashMap<>(messages);
   }
-
-
 }
