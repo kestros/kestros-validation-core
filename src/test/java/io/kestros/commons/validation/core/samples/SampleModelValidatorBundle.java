@@ -34,7 +34,7 @@ public class SampleModelValidatorBundle extends ModelValidatorBundle {
     this.bundledValidators = bundledValidators;
     this.message = message;
     this.allMustBeTrue = allMustBeTrue;
-    this.registerValidators();
+//    this.registerValidators();
   }
 
   @Override
