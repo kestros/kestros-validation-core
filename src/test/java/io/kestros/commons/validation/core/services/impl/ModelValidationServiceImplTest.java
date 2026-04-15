@@ -20,6 +20,8 @@
 package io.kestros.commons.validation.core.services.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -32,7 +34,6 @@ import org.apache.felix.hc.api.FormattingResultLog;
 import org.apache.felix.hc.api.Result;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -85,9 +86,10 @@ public class ModelValidationServiceImplTest {
   }
 
   @Test
-  @Ignore
   public void testValidateWhenValidatorProviderServiceIsNull() {
     context.registerInjectActivateService(modelValidationService);
-    modelValidationService.validate(resource);
+    ModelValidationResultImpl result = (ModelValidationResultImpl) modelValidationService.validate(resource);
+    assertNotNull(result);
+    assertTrue(result.getValidators().isEmpty());
   }
 }
