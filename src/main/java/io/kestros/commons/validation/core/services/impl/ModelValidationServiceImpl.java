@@ -82,7 +82,8 @@ public class ModelValidationServiceImpl implements ModelValidationService {
   @Override
   public <T extends BaseResource> ModelValidationResult validate(@Nonnull final T model) {
     if (validatorProviderService == null) {
-      LOG.warn("ModelValidatorProviderService is not available. Returning empty result.");
+      LOG.warn("ModelValidatorProviderService is not available. "
+          + "Returning empty validation result.");
       return new ModelValidationResultImpl(model, Collections.emptyList());
     }
     return new ModelValidationResultImpl(model,
