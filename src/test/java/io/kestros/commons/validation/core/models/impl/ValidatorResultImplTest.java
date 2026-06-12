@@ -107,6 +107,32 @@ public class ValidatorResultImplTest {
   }
 
   @Test
+  public void testGetBundledDoesNotAccumulateAcrossRendersOfSameBundle() {
+    // Bundle instances are cached and reused for every render. Rendering the same bundle more than
+    // once must not duplicate its child validators in the validation map.
+    List<ModelValidator> bundled = new ArrayList<>();
+    bundled.add(new SampleModelValidator(true, "Bundled Message 1", "",
+            ModelValidationMessageType.WARNING));
+    bundled.add(new SampleModelValidator(true, "Bundled Message 2", "",
+            ModelValidationMessageType.WARNING));
+
+    modelValidatorBundle = new SampleModelValidatorBundle(bundled, "Bundle root message", true);
+
+    ValidatorResultImpl firstRender = new ValidatorResultImpl(modelValidatorBundle, model);
+    assertEquals(2, firstRender.getBundled().size());
+
+    // Same bundle instance, second render — previously grew to 4 (then 6, 8, ...) on each render.
+    ValidatorResultImpl secondRender = new ValidatorResultImpl(modelValidatorBundle, model);
+    assertEquals(2, secondRender.getBundled().size());
+
+    ValidatorResultImpl thirdRender = new ValidatorResultImpl(modelValidatorBundle, model);
+    assertEquals(2, thirdRender.getBundled().size());
+
+    // The cached bundle's own child list must also stay flat.
+    assertEquals(2, modelValidatorBundle.getValidators().size());
+  }
+
+  @Test
   public void testGetValidatorClassPath() {
     modelValidator = new SampleModelValidator(true, "", "", ModelValidationMessageType.INFO);
     result = new ValidatorResultImpl(modelValidator, model);
