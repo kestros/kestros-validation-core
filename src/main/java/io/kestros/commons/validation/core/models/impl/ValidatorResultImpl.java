@@ -69,7 +69,12 @@ public class ValidatorResultImpl implements ValidatorResult {
       boolean hasInvalidValidator = false;
       this.bundled = new ArrayList<>();
       ModelValidatorBundle bundle = (ModelValidatorBundle) validator;
-      bundle.registerValidators();
+      // Only populate the bundle if it has not been registered yet. Bundle instances are cached and
+      // reused across every render; re-registering here appended the same child validators on each
+      // render, growing the validation map without bound (KDF validation panel showing duplicates).
+      if (bundle.getValidators().isEmpty()) {
+        bundle.registerValidators();
+      }
       for (Object childObject : bundle.getValidators()) {
         ModelValidator childValidator = (ModelValidator) childObject;
         ValidatorResult result = new ValidatorResultImpl(childValidator, model);
