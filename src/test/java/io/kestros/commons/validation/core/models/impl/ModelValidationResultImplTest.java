@@ -48,6 +48,52 @@ public class ModelValidationResultImplTest {
   }
 
   @Test
+  public void testGetMessagesKeepsEveryFailureAtTheSameSeverity() {
+    // Two validators failing at ERROR must both be reported. The map is keyed by severity, so the
+    // second one used to replace the first's list wholesale via putAll.
+    //
+    // Fails if: the merge at ModelValidationResultImpl is reverted to putAll — the ERROR list then
+    // holds only "Message 2" and the size assertion below reads 1.
+    final SampleModelValidator failing1 = new SampleModelValidator(false, "Message 1",
+            "Detailed Message 1", ModelValidationMessageType.ERROR);
+    final SampleModelValidator failing2 = new SampleModelValidator(false, "Message 2",
+            "Detailed Message 2", ModelValidationMessageType.ERROR);
+
+    validatorList.add(failing1);
+    validatorList.add(failing2);
+
+    result = new ModelValidationResultImpl(resource, validatorList);
+
+    final List<String> errors = result.getMessages().get(ModelValidationMessageType.ERROR);
+    assertEquals(2, errors.size());
+    assertTrue(errors.contains("Message 1"));
+    assertTrue(errors.contains("Message 2"));
+  }
+
+  @Test
+  public void testGetMessagesDoesNotMutateTheValidatorsOwnResult() {
+    // getMessages() hands the map out, so the merge must copy the incoming list rather than store
+    // the reference. Otherwise appending a second validator's messages would also append to the
+    // first validator's own result.
+    //
+    // Fails if: the merge stores entry.getValue() by reference instead of copying into a new
+    // ArrayList — the per-validator result then reports 2 errors instead of its own 1.
+    final SampleModelValidator failing1 = new SampleModelValidator(false, "Message 1",
+            "Detailed Message 1", ModelValidationMessageType.ERROR);
+    final SampleModelValidator failing2 = new SampleModelValidator(false, "Message 2",
+            "Detailed Message 2", ModelValidationMessageType.ERROR);
+
+    validatorList.add(failing1);
+    validatorList.add(failing2);
+
+    result = new ModelValidationResultImpl(resource, validatorList);
+    result.getMessages();
+
+    assertEquals(1,
+            result.getResults().get(0).getMessages().get(ModelValidationMessageType.ERROR).size());
+  }
+
+  @Test
   public void testGetResults() {
     SampleModelValidator validator1 = new SampleModelValidator(true, "Message 1",
             "Detailed Message 1", ModelValidationMessageType.ERROR);

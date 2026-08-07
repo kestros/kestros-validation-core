@@ -27,6 +27,7 @@ import io.kestros.commons.validation.api.models.ModelValidationResult;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import io.kestros.commons.validation.api.models.ValidatorResult;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class ModelValidationResultImpl implements ModelValidationResult {
   public <T extends BaseResource> ModelValidationResultImpl(@Nonnull final T model,
           @Nonnull final List<ModelValidator> validators) {
     this.results = new ArrayList<>();
-    messagesMap = new HashMap<>();
+    messagesMap = new EnumMap<>(ModelValidationMessageType.class);
     this.model = model;
     this.validators = new ArrayList<>(validators);
     this.isValid = Boolean.TRUE;
@@ -66,7 +67,19 @@ public class ModelValidationResultImpl implements ModelValidationResult {
         this.isValid = Boolean.FALSE;
       }
       results.add(validatorResult);
-      messagesMap.putAll(validatorResult.getMessages());
+      // putAll REPLACES the list for a severity that is already present, so a second validator
+      // failing at the same severity used to discard the first one's messages. Merge per key, and
+      // copy the incoming list rather than storing the reference — getMessages() below hands the
+      // map out, and appending to a borrowed list would mutate the validator's own result.
+      for (Map.Entry<ModelValidationMessageType, List<String>> entry
+              : validatorResult.getMessages().entrySet()) {
+        List<String> existing = messagesMap.get(entry.getKey());
+        if (existing == null) {
+          existing = new ArrayList<>();
+          messagesMap.put(entry.getKey(), existing);
+        }
+        existing.addAll(entry.getValue());
+      }
     }
   }
 

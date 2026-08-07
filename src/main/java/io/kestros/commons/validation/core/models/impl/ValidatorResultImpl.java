@@ -28,6 +28,7 @@ import io.kestros.commons.validation.api.models.ModelValidatorBundle;
 import io.kestros.commons.validation.api.models.ValidatorResult;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class ValidatorResultImpl implements ValidatorResult {
   @SuppressFBWarnings({"PSC_PRESIZE_COLLECTIONS","UEC_USE_ENUM_COLLECTIONS"})
   public <T extends BaseResource> ValidatorResultImpl(@Nonnull final ModelValidator validator,
           @Nonnull final T model) {
-    this.messages = new HashMap<>();
+    this.messages = new EnumMap<>(ModelValidationMessageType.class);
     this.message = validator.getMessage();
     this.detailedMessage = validator.getDetailedMessage(model);
     this.validatorClassPath = validator.getClass().getName();
@@ -81,7 +82,17 @@ public class ValidatorResultImpl implements ValidatorResult {
         bundled.add(result);
         if (!result.isValid()) {
           hasInvalidValidator = true;
-          this.messages.putAll(result.getMessages());
+          // Same clobber as ModelValidationResultImpl: putAll drops the messages already held
+          // for that severity when a second bundled validator fails at the same one.
+          for (Map.Entry<ModelValidationMessageType, List<String>> entry
+                  : result.getMessages().entrySet()) {
+            List<String> existing = this.messages.get(entry.getKey());
+            if (existing == null) {
+              existing = new ArrayList<>();
+              this.messages.put(entry.getKey(), existing);
+            }
+            existing.addAll(entry.getValue());
+          }
         } else {
           hasValidValidator = true;
         }
