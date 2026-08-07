@@ -27,6 +27,7 @@ import io.kestros.commons.validation.api.ModelValidationMessageType;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import io.kestros.commons.validation.core.models.impl.ModelValidationResultImpl;
 import io.kestros.commons.validation.core.samples.SampleModelValidator;
+import io.kestros.commons.validation.core.samples.SampleModelValidatorBundle;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.felix.hc.api.FormattingResultLog;
@@ -71,25 +72,31 @@ public class ModelValidationResultImplTest {
   }
 
   @Test
-  public void testGetMessagesDoesNotMutateTheValidatorsOwnResult() {
-    // getMessages() hands the map out, so the merge must copy the incoming list rather than store
-    // the reference. Otherwise appending a second validator's messages would also append to the
-    // first validator's own result.
+  public void testGetMessagesDoesNotGrowABundlesOwnMessageList() {
+    // The copy-in has to be tested where getting it wrong is SILENT. Two plain validators return
+    // Collections.singletonList, so a reference-storing merge throws UnsupportedOperation before
+    // any assertion runs — that proves the list is immutable, not that the copy works.
     //
-    // Fails if: the merge stores entry.getValue() by reference instead of copying into a new
-    // ArrayList — the per-validator result then reports 2 errors instead of its own 1.
-    final SampleModelValidator failing1 = new SampleModelValidator(false, "Message 1",
-            "Detailed Message 1", ModelValidationMessageType.ERROR);
-    final SampleModelValidator failing2 = new SampleModelValidator(false, "Message 2",
-            "Detailed Message 2", ModelValidationMessageType.ERROR);
+    // A bundle's messages are a mutable ArrayList handed out by reference, so a merge that
+    // retains the reference appends the standalone validator's message to the BUNDLE's own list.
+    //
+    // Fails if: the merge stores entry.getValue() instead of copying into a new ArrayList. The
+    // bundle then reports 3 errors of its own instead of 2, on the assertion below rather than by
+    // an exception thrown earlier.
+    final List<ModelValidator> bundled = new ArrayList<>();
+    bundled.add(new SampleModelValidator(false, "Bundled 1", "Detail 1",
+            ModelValidationMessageType.ERROR));
+    bundled.add(new SampleModelValidator(false, "Bundled 2", "Detail 2",
+            ModelValidationMessageType.ERROR));
 
-    validatorList.add(failing1);
-    validatorList.add(failing2);
+    validatorList.add(new SampleModelValidatorBundle(bundled, "Bundle root", true));
+    validatorList.add(new SampleModelValidator(false, "Standalone", "Detail 3",
+            ModelValidationMessageType.ERROR));
 
     result = new ModelValidationResultImpl(resource, validatorList);
-    result.getMessages();
 
-    assertEquals(1,
+    assertEquals(3, result.getMessages().get(ModelValidationMessageType.ERROR).size());
+    assertEquals(2,
             result.getResults().get(0).getMessages().get(ModelValidationMessageType.ERROR).size());
   }
 

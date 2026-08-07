@@ -107,7 +107,6 @@ public class ModelValidationResultImpl implements ModelValidationResult {
     return isValid;
   }
 
-  @SuppressFBWarnings("UEC_USE_ENUM_COLLECTIONS")
   @Nonnull
   @Override
   public Map<ModelValidationMessageType, List<String>> getMessages() {

@@ -57,7 +57,7 @@ public class ValidatorResultImpl implements ValidatorResult {
    * @param model Model to validate
    * @param <T> Model type.
    */
-  @SuppressFBWarnings({"PSC_PRESIZE_COLLECTIONS","UEC_USE_ENUM_COLLECTIONS"})
+  @SuppressFBWarnings("PSC_PRESIZE_COLLECTIONS")
   public <T extends BaseResource> ValidatorResultImpl(@Nonnull final ModelValidator validator,
           @Nonnull final T model) {
     this.messages = new EnumMap<>(ModelValidationMessageType.class);
