@@ -27,6 +27,7 @@ import io.kestros.commons.validation.api.ModelValidationMessageType;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import io.kestros.commons.validation.core.models.impl.ModelValidationResultImpl;
 import io.kestros.commons.validation.core.samples.SampleModelValidator;
+import io.kestros.commons.validation.core.samples.SampleModelValidatorBundle;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.felix.hc.api.FormattingResultLog;
@@ -45,6 +46,58 @@ public class ModelValidationResultImplTest {
   @Before
   public void setUp() throws Exception {
     resource = mock(BaseResource.class);
+  }
+
+  @Test
+  public void testGetMessagesKeepsEveryFailureAtTheSameSeverity() {
+    // Two validators failing at ERROR must both be reported. The map is keyed by severity, so the
+    // second one used to replace the first's list wholesale via putAll.
+    //
+    // Fails if: the merge at ModelValidationResultImpl is reverted to putAll — the ERROR list then
+    // holds only "Message 2" and the size assertion below reads 1.
+    final SampleModelValidator failing1 = new SampleModelValidator(false, "Message 1",
+            "Detailed Message 1", ModelValidationMessageType.ERROR);
+    final SampleModelValidator failing2 = new SampleModelValidator(false, "Message 2",
+            "Detailed Message 2", ModelValidationMessageType.ERROR);
+
+    validatorList.add(failing1);
+    validatorList.add(failing2);
+
+    result = new ModelValidationResultImpl(resource, validatorList);
+
+    final List<String> errors = result.getMessages().get(ModelValidationMessageType.ERROR);
+    assertEquals(2, errors.size());
+    assertTrue(errors.contains("Message 1"));
+    assertTrue(errors.contains("Message 2"));
+  }
+
+  @Test
+  public void testGetMessagesDoesNotGrowABundlesOwnMessageList() {
+    // The copy-in has to be tested where getting it wrong is SILENT. Two plain validators return
+    // Collections.singletonList, so a reference-storing merge throws UnsupportedOperation before
+    // any assertion runs — that proves the list is immutable, not that the copy works.
+    //
+    // A bundle's messages are a mutable ArrayList handed out by reference, so a merge that
+    // retains the reference appends the standalone validator's message to the BUNDLE's own list.
+    //
+    // Fails if: the merge stores entry.getValue() instead of copying into a new ArrayList. The
+    // bundle then reports 3 errors of its own instead of 2, on the assertion below rather than by
+    // an exception thrown earlier.
+    final List<ModelValidator> bundled = new ArrayList<>();
+    bundled.add(new SampleModelValidator(false, "Bundled 1", "Detail 1",
+            ModelValidationMessageType.ERROR));
+    bundled.add(new SampleModelValidator(false, "Bundled 2", "Detail 2",
+            ModelValidationMessageType.ERROR));
+
+    validatorList.add(new SampleModelValidatorBundle(bundled, "Bundle root", true));
+    validatorList.add(new SampleModelValidator(false, "Standalone", "Detail 3",
+            ModelValidationMessageType.ERROR));
+
+    result = new ModelValidationResultImpl(resource, validatorList);
+
+    assertEquals(3, result.getMessages().get(ModelValidationMessageType.ERROR).size());
+    assertEquals(2,
+            result.getResults().get(0).getMessages().get(ModelValidationMessageType.ERROR).size());
   }
 
   @Test

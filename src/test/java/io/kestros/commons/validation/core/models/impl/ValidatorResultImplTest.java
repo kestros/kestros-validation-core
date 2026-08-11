@@ -190,6 +190,29 @@ public class ValidatorResultImplTest {
   }
 
   @Test
+  public void testGetMessagesWhenBundledAndTwoChildrenFailAtTheSameSeverity() {
+    // The existing bundle test uses one ERROR child and one WARNING child, so it passes whether
+    // the messages are merged or overwritten. Two children at the SAME severity is the case the
+    // card's criterion 2 names and the only one that exercises the merge here.
+    //
+    // Fails if: the merge in ValidatorResultImpl is reverted to putAll. The ERROR list then holds
+    // only "Bundled Message 2" and the size assertion reads 1.
+    final List<ModelValidator> bundled = new ArrayList<>();
+    bundled.add(new SampleModelValidator(false, "Bundled Message 1", "",
+            ModelValidationMessageType.ERROR));
+    bundled.add(new SampleModelValidator(false, "Bundled Message 2", "",
+            ModelValidationMessageType.ERROR));
+
+    modelValidatorBundle = new SampleModelValidatorBundle(bundled, "Bundle root message", true);
+    result = new ValidatorResultImpl(modelValidatorBundle, model);
+
+    final List<String> errors = result.getMessages().get(ModelValidationMessageType.ERROR);
+    assertEquals(2, errors.size());
+    assertTrue(errors.contains("Bundled Message 1"));
+    assertTrue(errors.contains("Bundled Message 2"));
+  }
+
+  @Test
   public void testGetMessagesWhenBundledWhenBothFail() {
     List<ModelValidator> bundled = new ArrayList<>();
     ModelValidator bundledValidator1 = new SampleModelValidator(false, "Bundled Message 1", "",
