@@ -131,6 +131,11 @@ public class ValidationListServletTest {
     // ACL enforcement lives in the resolver: a caller who cannot read a row gets null back for
     // it. What this servlet owes is to omit that row entirely rather than report it as a row
     // with no messages, which would leak that it exists and is valid.
+    //
+    // This mocks the refusal rather than provoking one. The same check written against a real
+    // Oak repository, a real user and a real jcr:read deny passes on JDK 11 but cannot run on
+    // the verification gate: sling-mock-oak needs java.security.acl.Group, removed in JDK 14.
+    // See card #660.
     context.create().resource("/apps/components/readable");
     respondPerResource();
     registerServlet();
