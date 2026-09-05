@@ -166,6 +166,14 @@ public class ValidatorResultImpl implements ValidatorResult {
   @Override
 
   public Map<ModelValidationMessageType, List<String>> getMessages() {
-    return new HashMap<>(messages);
+    // Copy every list, not just the map. A bundle's lists are mutable ArrayLists built in the
+    // constructor, so a new HashMap over them still lets a caller append to this result. Copying
+    // unconditionally also means the singletonList a plain validator holds is handed out as a
+    // mutable copy, so a mutating caller no longer gets an UnsupportedOperationException.
+    final Map<ModelValidationMessageType, List<String>> copy = new HashMap<>(messages);
+    for (Map.Entry<ModelValidationMessageType, List<String>> entry : copy.entrySet()) {
+      entry.setValue(new ArrayList<>(entry.getValue()));
+    }
+    return copy;
   }
 }

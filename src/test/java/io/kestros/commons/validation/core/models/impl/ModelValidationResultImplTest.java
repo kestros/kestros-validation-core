@@ -101,6 +101,29 @@ public class ModelValidationResultImplTest {
   }
 
   @Test
+  public void testGetMessagesReturnsCopiesTheCallerCannotUseToEditTheResult() {
+    // getMessages() copies the map but not the lists inside it, so a caller that adds to a
+    // returned list is editing the result. Cover a populated severity and an empty one — the
+    // empty one is seeded by the getter on the base branch, so it aliases too.
+    //
+    // Fails if: getMessages() hands back the field's own lists. The second call then reports
+    // 2 errors instead of 1 and 1 warning instead of 0.
+    validatorList.add(new SampleModelValidator(false, "Message 1", "Detailed Message 1",
+            ModelValidationMessageType.ERROR));
+
+    result = new ModelValidationResultImpl(resource, validatorList);
+
+    result.getMessages().get(ModelValidationMessageType.ERROR).add("Injected error");
+    result.getMessages().get(ModelValidationMessageType.WARNING).add("Injected warning");
+
+    assertEquals(1, result.getMessages().get(ModelValidationMessageType.ERROR).size());
+    assertFalse(result.getMessages().get(ModelValidationMessageType.ERROR).contains(
+            "Injected error"));
+    assertEquals(0, result.getMessages().get(ModelValidationMessageType.WARNING).size());
+    assertEquals(3, result.getMessages().size());
+  }
+
+  @Test
   public void testGetResults() {
     SampleModelValidator validator1 = new SampleModelValidator(true, "Message 1",
             "Detailed Message 1", ModelValidationMessageType.ERROR);
