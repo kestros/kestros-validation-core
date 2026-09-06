@@ -58,6 +58,13 @@ public class ModelValidationResultImpl implements ModelValidationResult {
           @Nonnull final List<ModelValidator> validators) {
     this.results = new ArrayList<>();
     messagesMap = new EnumMap<>(ModelValidationMessageType.class);
+    // Seed every severity here rather than in getMessages(). Callers dereference the returned
+    // list directly — .size(), addAll, for-each, with no null check — so all three keys must be
+    // present whether or not they hold messages. Seeding on read made a getter write to its own
+    // field, and the seeded lists were then handed out by reference.
+    messagesMap.put(ModelValidationMessageType.ERROR, new ArrayList<>());
+    messagesMap.put(ModelValidationMessageType.WARNING, new ArrayList<>());
+    messagesMap.put(ModelValidationMessageType.INFO, new ArrayList<>());
     this.model = model;
     this.validators = new ArrayList<>(validators);
     this.isValid = Boolean.TRUE;
@@ -110,15 +117,14 @@ public class ModelValidationResultImpl implements ModelValidationResult {
   @Nonnull
   @Override
   public Map<ModelValidationMessageType, List<String>> getMessages() {
-    if (!messagesMap.containsKey(ModelValidationMessageType.ERROR)) {
-      messagesMap.put(ModelValidationMessageType.ERROR, new ArrayList<>());
+    // Copy the lists, not just the map. A new HashMap over the same lists still lets a caller
+    // append to the result's own messages. Copying rather than wrapping in an unmodifiable view
+    // keeps a mutating caller working: this is published to Maven Central, so the caller set is
+    // not closed by any survey, and a view would turn a silent no-op into a runtime throw.
+    final Map<ModelValidationMessageType, List<String>> copy = new HashMap<>(messagesMap);
+    for (Map.Entry<ModelValidationMessageType, List<String>> entry : copy.entrySet()) {
+      entry.setValue(new ArrayList<>(entry.getValue()));
     }
-    if (!messagesMap.containsKey(ModelValidationMessageType.WARNING)) {
-      messagesMap.put(ModelValidationMessageType.WARNING, new ArrayList<>());
-    }
-    if (!messagesMap.containsKey(ModelValidationMessageType.INFO)) {
-      messagesMap.put(ModelValidationMessageType.INFO, new ArrayList<>());
-    }
-    return new HashMap<>(messagesMap);
+    return copy;
   }
 }
