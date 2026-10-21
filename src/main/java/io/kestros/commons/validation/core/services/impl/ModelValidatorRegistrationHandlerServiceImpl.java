@@ -29,6 +29,7 @@ import io.kestros.commons.validation.api.services.ModelValidatorRegistrationServ
 import io.kestros.commons.validation.core.services.ModelValidationActivateStatusService;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -182,12 +183,15 @@ public class ModelValidatorRegistrationHandlerServiceImpl
     }
     List<ModelValidator> registeredValidators = registeredModelValidatorMap.get(type);
     for (ModelValidator validatorToRemove : modelValidators) {
-      if (validatorToRemove == null || validatorToRemove.getMessage() == null) {
+      if (validatorToRemove == null) {
         continue;
       }
-      registeredValidators.removeIf(existing ->
-              existing.getMessage() != null
-                      && existing.getMessage().equals(validatorToRemove.getMessage()));
+      Iterator<ModelValidator> iterator = registeredValidators.iterator();
+      while (iterator.hasNext()) {
+        if (iterator.next().getMessage().equals(validatorToRemove.getMessage())) {
+          iterator.remove();
+        }
+      }
       if (modelValidationActivateStatusService != null) {
         modelValidationActivateStatusService.deactivateValidator(validatorToRemove, type);
       }
