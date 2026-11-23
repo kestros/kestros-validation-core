@@ -190,6 +190,52 @@ public class ValidatorResultImplTest {
   }
 
   @Test
+  public void testGetMessagesWhenBundledAndTwoChildrenFailAtTheSameSeverity() {
+    // The existing bundle test uses one ERROR child and one WARNING child, so it passes whether
+    // the messages are merged or overwritten. Two children at the SAME severity is the case the
+    // card's criterion 2 names and the only one that exercises the merge here.
+    //
+    // Fails if: the merge in ValidatorResultImpl is reverted to putAll. The ERROR list then holds
+    // only "Bundled Message 2" and the size assertion reads 1.
+    final List<ModelValidator> bundled = new ArrayList<>();
+    bundled.add(new SampleModelValidator(false, "Bundled Message 1", "",
+            ModelValidationMessageType.ERROR));
+    bundled.add(new SampleModelValidator(false, "Bundled Message 2", "",
+            ModelValidationMessageType.ERROR));
+
+    modelValidatorBundle = new SampleModelValidatorBundle(bundled, "Bundle root message", true);
+    result = new ValidatorResultImpl(modelValidatorBundle, model);
+
+    final List<String> errors = result.getMessages().get(ModelValidationMessageType.ERROR);
+    assertEquals(2, errors.size());
+    assertTrue(errors.contains("Bundled Message 1"));
+    assertTrue(errors.contains("Bundled Message 2"));
+  }
+
+  @Test
+  public void testGetMessagesReturnsCopiesTheCallerCannotUseToEditTheResult() {
+    // A bundle's message lists are mutable ArrayLists built in the constructor, and getMessages()
+    // copies the map but not the lists — so a caller that adds to a returned list edits the
+    // result. A plain validator stores a Collections.singletonList and would throw on add, which
+    // proves immutability rather than exercising the aliasing, so the bundle is the case to use.
+    //
+    // Fails if: getMessages() hands back the field's own list. The second call then reports 2
+    // errors instead of 1.
+    final List<ModelValidator> bundled = new ArrayList<>();
+    bundled.add(new SampleModelValidator(false, "Bundled Message 1", "",
+            ModelValidationMessageType.ERROR));
+
+    modelValidatorBundle = new SampleModelValidatorBundle(bundled, "Bundle root message", true);
+    result = new ValidatorResultImpl(modelValidatorBundle, model);
+
+    result.getMessages().get(ModelValidationMessageType.ERROR).add("Injected error");
+
+    assertEquals(1, result.getMessages().get(ModelValidationMessageType.ERROR).size());
+    assertFalse(result.getMessages().get(ModelValidationMessageType.ERROR).contains(
+            "Injected error"));
+  }
+
+  @Test
   public void testGetMessagesWhenBundledWhenBothFail() {
     List<ModelValidator> bundled = new ArrayList<>();
     ModelValidator bundledValidator1 = new SampleModelValidator(false, "Bundled Message 1", "",

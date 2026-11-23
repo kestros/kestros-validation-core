@@ -28,6 +28,7 @@ import io.kestros.commons.validation.api.models.ModelValidatorBundle;
 import io.kestros.commons.validation.api.models.ValidatorResult;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,10 +57,10 @@ public class ValidatorResultImpl implements ValidatorResult {
    * @param model Model to validate
    * @param <T> Model type.
    */
-  @SuppressFBWarnings({"PSC_PRESIZE_COLLECTIONS","UEC_USE_ENUM_COLLECTIONS"})
+  @SuppressFBWarnings("PSC_PRESIZE_COLLECTIONS")
   public <T extends BaseResource> ValidatorResultImpl(@Nonnull final ModelValidator validator,
           @Nonnull final T model) {
-    this.messages = new HashMap<>();
+    this.messages = new EnumMap<>(ModelValidationMessageType.class);
     this.message = validator.getMessage();
     this.detailedMessage = validator.getDetailedMessage(model);
     this.validatorClassPath = validator.getClass().getName();
@@ -81,7 +82,17 @@ public class ValidatorResultImpl implements ValidatorResult {
         bundled.add(result);
         if (!result.isValid()) {
           hasInvalidValidator = true;
-          this.messages.putAll(result.getMessages());
+          // Same clobber as ModelValidationResultImpl: putAll drops the messages already held
+          // for that severity when a second bundled validator fails at the same one.
+          for (Map.Entry<ModelValidationMessageType, List<String>> entry
+                  : result.getMessages().entrySet()) {
+            List<String> existing = this.messages.get(entry.getKey());
+            if (existing == null) {
+              existing = new ArrayList<>();
+              this.messages.put(entry.getKey(), existing);
+            }
+            existing.addAll(entry.getValue());
+          }
         } else {
           hasValidValidator = true;
         }
@@ -155,6 +166,14 @@ public class ValidatorResultImpl implements ValidatorResult {
   @Override
 
   public Map<ModelValidationMessageType, List<String>> getMessages() {
-    return new HashMap<>(messages);
+    // Copy every list, not just the map. A bundle's lists are mutable ArrayLists built in the
+    // constructor, so a new HashMap over them still lets a caller append to this result. Copying
+    // unconditionally also means the singletonList a plain validator holds is handed out as a
+    // mutable copy, so a mutating caller no longer gets an UnsupportedOperationException.
+    final Map<ModelValidationMessageType, List<String>> copy = new HashMap<>(messages);
+    for (Map.Entry<ModelValidationMessageType, List<String>> entry : copy.entrySet()) {
+      entry.setValue(new ArrayList<>(entry.getValue()));
+    }
+    return copy;
   }
 }

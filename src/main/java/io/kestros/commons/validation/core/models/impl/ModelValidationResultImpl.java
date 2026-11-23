@@ -27,6 +27,7 @@ import io.kestros.commons.validation.api.models.ModelValidationResult;
 import io.kestros.commons.validation.api.models.ModelValidator;
 import io.kestros.commons.validation.api.models.ValidatorResult;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,14 @@ public class ModelValidationResultImpl implements ModelValidationResult {
   public <T extends BaseResource> ModelValidationResultImpl(@Nonnull final T model,
           @Nonnull final List<ModelValidator> validators) {
     this.results = new ArrayList<>();
-    messagesMap = new HashMap<>();
+    messagesMap = new EnumMap<>(ModelValidationMessageType.class);
+    // Seed every severity here rather than in getMessages(). Callers dereference the returned
+    // list directly — .size(), addAll, for-each, with no null check — so all three keys must be
+    // present whether or not they hold messages. Seeding on read made a getter write to its own
+    // field, and the seeded lists were then handed out by reference.
+    messagesMap.put(ModelValidationMessageType.ERROR, new ArrayList<>());
+    messagesMap.put(ModelValidationMessageType.WARNING, new ArrayList<>());
+    messagesMap.put(ModelValidationMessageType.INFO, new ArrayList<>());
     this.model = model;
     this.validators = new ArrayList<>(validators);
     this.isValid = Boolean.TRUE;
@@ -66,7 +74,19 @@ public class ModelValidationResultImpl implements ModelValidationResult {
         this.isValid = Boolean.FALSE;
       }
       results.add(validatorResult);
-      messagesMap.putAll(validatorResult.getMessages());
+      // putAll REPLACES the list for a severity that is already present, so a second validator
+      // failing at the same severity used to discard the first one's messages. Merge per key, and
+      // copy the incoming list rather than storing the reference — getMessages() below hands the
+      // map out, and appending to a borrowed list would mutate the validator's own result.
+      for (Map.Entry<ModelValidationMessageType, List<String>> entry
+              : validatorResult.getMessages().entrySet()) {
+        List<String> existing = messagesMap.get(entry.getKey());
+        if (existing == null) {
+          existing = new ArrayList<>();
+          messagesMap.put(entry.getKey(), existing);
+        }
+        existing.addAll(entry.getValue());
+      }
     }
   }
 
@@ -94,19 +114,17 @@ public class ModelValidationResultImpl implements ModelValidationResult {
     return isValid;
   }
 
-  @SuppressFBWarnings("UEC_USE_ENUM_COLLECTIONS")
   @Nonnull
   @Override
   public Map<ModelValidationMessageType, List<String>> getMessages() {
-    if (!messagesMap.containsKey(ModelValidationMessageType.ERROR)) {
-      messagesMap.put(ModelValidationMessageType.ERROR, new ArrayList<>());
+    // Copy the lists, not just the map. A new HashMap over the same lists still lets a caller
+    // append to the result's own messages. Copying rather than wrapping in an unmodifiable view
+    // keeps a mutating caller working: this is published to Maven Central, so the caller set is
+    // not closed by any survey, and a view would turn a silent no-op into a runtime throw.
+    final Map<ModelValidationMessageType, List<String>> copy = new HashMap<>(messagesMap);
+    for (Map.Entry<ModelValidationMessageType, List<String>> entry : copy.entrySet()) {
+      entry.setValue(new ArrayList<>(entry.getValue()));
     }
-    if (!messagesMap.containsKey(ModelValidationMessageType.WARNING)) {
-      messagesMap.put(ModelValidationMessageType.WARNING, new ArrayList<>());
-    }
-    if (!messagesMap.containsKey(ModelValidationMessageType.INFO)) {
-      messagesMap.put(ModelValidationMessageType.INFO, new ArrayList<>());
-    }
-    return new HashMap<>(messagesMap);
+    return copy;
   }
 }
