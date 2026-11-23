@@ -29,6 +29,7 @@ import io.kestros.commons.validation.api.services.ModelValidatorRegistrationServ
 import io.kestros.commons.validation.core.services.ModelValidationActivateStatusService;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -177,13 +178,27 @@ public class ModelValidatorRegistrationHandlerServiceImpl
 
   @Override
   public void removeValidators(@Nonnull List<ModelValidator> modelValidators, @Nonnull Class type) {
-    // todo may not be needed.
-    //    if (registeredModelValidatorMap.containsKey(type)) {
-    //      List<RegisteredModelValidator> newRegisteredModelValidatorList = new ArrayList<>();
-    //
-    //      registeredModelValidatorMap.remove(type);
-    //      registeredModelValidatorMap.put(type, newRegisteredModelValidatorList);
-    //    }
+    if (!registeredModelValidatorMap.containsKey(type)) {
+      return;
+    }
+    List<ModelValidator> registeredValidators = registeredModelValidatorMap.get(type);
+    for (ModelValidator validatorToRemove : modelValidators) {
+      if (validatorToRemove == null) {
+        continue;
+      }
+      Iterator<ModelValidator> iterator = registeredValidators.iterator();
+      while (iterator.hasNext()) {
+        if (iterator.next().getMessage().equals(validatorToRemove.getMessage())) {
+          iterator.remove();
+        }
+      }
+      if (modelValidationActivateStatusService != null) {
+        modelValidationActivateStatusService.deactivateValidator(validatorToRemove, type);
+      }
+    }
+    if (registeredValidators.isEmpty()) {
+      registeredModelValidatorMap.remove(type);
+    }
   }
 
   /**
